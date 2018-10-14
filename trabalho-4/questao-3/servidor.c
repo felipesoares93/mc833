@@ -97,6 +97,9 @@ int main(int argc, char **argv) {
 
 void SendCommandToClients(char command_buf[MAX_LINE], char ip[MAX_LINE], struct sockaddr_in client) {
   int i;
+  char s[300];
+  sprintf(s, "COMANDO ENVIADO %s", command_buf);
+  UpdateLog(s);
   printf("Enviando comando Unix [%s] para %d clientes...\n", command_buf, *totalPids);
   for (i = 0; i < *totalPids; i++) {
     printf("Enviando para socket %d...\n", pids[i]);
@@ -104,6 +107,10 @@ void SendCommandToClients(char command_buf[MAX_LINE], char ip[MAX_LINE], struct 
     write(pids[i], command_buf, MAX_LINE);
 
     if (strcmp(command_buf, "exitc") == 0 || strcmp(command_buf, "exits") == 0) {
+      if (strcmp(command_buf, "exitc") == 0) {
+        sprintf(s, "DESCONECTADO IP %s PORT %u", ip, ntohs(client.sin_port));
+        UpdateLog(s);
+      }
       time_t t = time(NULL);
       struct tm tm = *localtime(&t);
       printf("Data e Hora de encerramento de conexão com o cliente IP %s, Porta %u: %d-%d-%d %d:%d:%d\n",
@@ -115,6 +122,8 @@ void SendCommandToClients(char command_buf[MAX_LINE], char ip[MAX_LINE], struct 
   }
 
   if (strcmp(command_buf, "exits") == 0) {
+    sprintf(s, "DESCONECTADO SERVIDOR");
+    UpdateLog(s);
     kill(0, SIGTERM);
   }
 }
