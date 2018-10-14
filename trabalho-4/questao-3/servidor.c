@@ -27,6 +27,7 @@ void InitSharedData();
 void BindConnection(struct sockaddr_in server, int s);
 void ProcessClientConnection(struct sockaddr_in client, int socketfd, char buf[MAX_LINE], char ip[MAX_LINE]);
 int GetSharedSocket(int family, int type, int flags);
+void UpdateLog(char *s);
 
 
 int main(int argc, char **argv) {
@@ -165,6 +166,10 @@ void ProcessClientConnection(struct sockaddr_in client, int socketfd, char buf[M
   // traduz porta e ip
   inet_ntop(AF_INET, &(client.sin_addr), ip, INET_ADDRSTRLEN);
 
+  char s[200];
+  sprintf(s, "CONECTADO IP %s PORT %u", ip, ntohs(client.sin_port));
+  UpdateLog(s);
+
   //TODO: call log_client_info(ip, ntohs(client.sin_port), tempo, string)
 
   printf("Novo cliente conectado\nIP: %s, Porta: %u\n", ip, ntohs(client.sin_port));
@@ -221,4 +226,14 @@ void ProcessClientConnection(struct sockaddr_in client, int socketfd, char buf[M
 
   // fecha processo filho
   close(socketfd);
+}
+
+void UpdateLog(char *s) {
+  FILE *fptr;
+  time_t t;
+  fptr = fopen("log.txt","a+");
+  time(&t);
+  sprintf(s, "%s TIME %s", s, ctime(&t));
+  fprintf(fptr, "%s", s);
+  fclose(fptr);
 }
