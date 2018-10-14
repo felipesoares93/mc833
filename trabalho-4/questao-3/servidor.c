@@ -27,6 +27,7 @@ void InitSharedData();
 void BindConnection(struct sockaddr_in server, int s);
 void ProcessClientConnection(struct sockaddr_in client, int socketfd, char buf[MAX_LINE], char ip[MAX_LINE]);
 int GetSharedSocket(int family, int type, int flags);
+void UpdateLog(char *s);
 
 
 int main(int argc, char **argv) {
@@ -96,6 +97,9 @@ int main(int argc, char **argv) {
 
 void SendCommandToClients(char command_buf[MAX_LINE], char ip[MAX_LINE], struct sockaddr_in client) {
   int i;
+  char s[300];
+  sprintf(s, "COMANDO ENVIADO %s", command_buf);
+  UpdateLog(s);
   printf("Enviando comando Unix [%s] para %d clientes...\n", command_buf, *totalPids);
   for (i = 0; i < *totalPids; i++) {
     printf("Enviando para socket %d...\n", pids[i]);
@@ -103,6 +107,10 @@ void SendCommandToClients(char command_buf[MAX_LINE], char ip[MAX_LINE], struct 
     write(pids[i], command_buf, MAX_LINE);
 
     if (strcmp(command_buf, "exitc") == 0 || strcmp(command_buf, "exits") == 0) {
+      if (strcmp(command_buf, "exitc") == 0) {
+        sprintf(s, "DESCONECTADO IP %s PORT %u", ip, ntohs(client.sin_port));
+        UpdateLog(s);
+      }
       time_t t = time(NULL);
       struct tm tm = *localtime(&t);
       printf("Data e Hora de encerramento de conexão com o cliente IP %s, Porta %u: %d-%d-%d %d:%d:%d\n",
@@ -114,6 +122,8 @@ void SendCommandToClients(char command_buf[MAX_LINE], char ip[MAX_LINE], struct 
   }
 
   if (strcmp(command_buf, "exits") == 0) {
+    sprintf(s, "DESCONECTADO SERVIDOR");
+    UpdateLog(s);
     kill(0, SIGTERM);
   }
 }
@@ -164,6 +174,10 @@ void ProcessClientConnection(struct sockaddr_in client, int socketfd, char buf[M
 
   // traduz porta e ip
   inet_ntop(AF_INET, &(client.sin_addr), ip, INET_ADDRSTRLEN);
+
+  char s[200];
+  sprintf(s, "CONECTADO IP %s PORT %u", ip, ntohs(client.sin_port));
+  UpdateLog(s);
 
   //TODO: call log_client_info(ip, ntohs(client.sin_port), tempo, string)
 
@@ -221,4 +235,14 @@ void ProcessClientConnection(struct sockaddr_in client, int socketfd, char buf[M
 
   // fecha processo filho
   close(socketfd);
+}
+
+void UpdateLog(char *s) {
+  FILE *fptr;
+  time_t t;
+  fptr = fopen("log.txt","a+");
+  time(&t);
+  sprintf(s, "%s TIME %s", s, ctime(&t));
+  fprintf(fptr, "%s", s);
+  fclose(fptr);
 }
