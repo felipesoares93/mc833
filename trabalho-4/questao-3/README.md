@@ -1,4 +1,4 @@
-# Exercício 3
+# Trabalho 4 - Questão 3
 
 ## Getting Started
 
@@ -8,32 +8,34 @@ Para execução dos programas, incialmente deve-se compilar or arquivos cliente.
 $ make
 ```
 
-Para que o programa cliente possa se comunicar com o servidor, a porta 8000 deve estar abilitada e disponível na máquina servidor.
+Para que o programa cliente possa se comunicar com o servidor, a porta escolhida deve estar abilitada e disponível na máquina servidor.
 
 ## Running
 
 Para executar o compilado servidor, rodar o seguinte comando em um terminal:
 
 ```
-$ ./servidor
+$ ./servidor [PORTA]
 ```
+
+onde [PORTA] é a porta utilizada pelo servidor para expor a conexão.
 
 Para executar o compilado cliente, rodar o seguinte comando em um outro terminal:
 
 ```
-$ ./cliente [IP]
+$ ./cliente [IP] [PORTA]
 ```
 
-onde [IP] é o endereço de IP do servidor.
+onde [IP] é o endereço de IP do servidor e [PORTA] a porta de conexão do servidor.
 
 ## Example
 
 Executando ambos programas em uma mesma máquina A mas em diferentes terminais:
 
 ```
-$ ./servidor
+$ ./servidor 8000
 ```
 
 ```
-$ ./cliente 127.0.0.1
+$ ./cliente 127.0.0.1 8000
 ```
