@@ -12,7 +12,7 @@
 #include "basic.h"
 #include "socket_helper.h"
 
-#define LISTENQ 10              
+// #define LISTENQ 10              
 #define MAXDATASIZE 4096         
 #define EXIT_COMMAND "exit\n"
 
@@ -21,19 +21,22 @@ void doit(int connfd, struct sockaddr_in clientaddr);
 int main (int argc, char **argv) {
    int    listenfd,              
           connfd,               
-          port;                  
+          port,
+          listenq;                  
    struct sockaddr_in servaddr;  
    char   error[MAXDATASIZE + 1];     
 
-   if (argc != 2) {
+   if (argc != 3) {
       strcpy(error,"uso: ");
       strcat(error,argv[0]);
       strcat(error," <Port>");
+      strcat(error," <Backlog>");
       perror(error);
       exit(1);
    }
 
    port = atoi(argv[1]);
+   listenq = atoi(argv[2]);
 
    listenfd = Socket(AF_INET, SOCK_STREAM, 0);
 
@@ -43,7 +46,7 @@ int main (int argc, char **argv) {
 
    Bind(listenfd, (struct sockaddr *) &servaddr, sizeof(servaddr));
 
-   Listen(listenfd, LISTENQ);
+   Listen(listenfd, listenq);
 
 
    for ( ; ; ) {
