@@ -29,8 +29,7 @@ int main (int argc, char **argv) {
    if (argc != 3) {
       strcpy(error,"uso: ");
       strcat(error,argv[0]);
-      strcat(error," <Port>");
-      strcat(error," <Backlog>");
+      strcat(error," <Port, Backlog>");
       perror(error);
       exit(1);
    }
@@ -40,9 +39,7 @@ int main (int argc, char **argv) {
 
    listenfd = Socket(AF_INET, SOCK_STREAM, 0);
 
-
    servaddr = ServerSockaddrIn(AF_INET, INADDR_ANY, port);
-
 
    Bind(listenfd, (struct sockaddr *) &servaddr, sizeof(servaddr));
 
@@ -56,8 +53,18 @@ int main (int argc, char **argv) {
       socklen_t clientaddr_len = sizeof(clientaddr);
 
       connfd = Accept(listenfd, (struct sockaddr *) &clientaddr, &clientaddr_len);
+      
+      if (getpeername(connfd, (struct sockaddr *) &clientaddr, &clientaddr_len) == -1) {
+         perror("getpeername() failed");
+         return 0 ;
+      }
 
+      printf("<%s-%d>: connected\n", inet_ntoa(clientaddr.sin_addr),(int) ntohs(clientaddr.sin_port));
+      
+      sleep(5);
+      
       if((pid = fork()) == 0) {
+         
          Close(listenfd);
          
          doit(connfd, clientaddr);

@@ -24,18 +24,23 @@ int main(int argc, char **argv) {
    char * ip;                      
    char   error[MAXLINE + 1];       
    struct sockaddr_in servaddr;    
-
-   if (argc != 3) {
+   
+   if ((argc < 2) || (argc > 3)) {
       strcpy(error,"uso: ");
       strcat(error,argv[0]);
-      strcat(error," <IPaddress, Port>");
+      strcat(error," <IPaddress>");
       perror(error);
       exit(1);
    }
-
   
    ip = argv[1];
-   port = atoi(argv[2]);
+   if (argc == 2) {
+      FILE *fptr = stdin;
+      fscanf(fptr, "%d", &port);
+      fclose(fptr);
+   } else {
+      port = atoi(argv[2]);
+   }
 
    sockfd = Socket(AF_INET, SOCK_STREAM, 0);
 
