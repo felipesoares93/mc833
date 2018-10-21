@@ -59,10 +59,14 @@ int main (int argc, char **argv) {
 
          doit(connfd, clientaddr);
 
+         // printf("Fechou: %s - %d>\n", inet_ntoa(clientaddr.sin_addr),(int) ntohs(clientaddr.sin_port));
+
          Close(connfd);
 
          exit(0);
       }
+
+      signal(SIGCHLD,SIG_IGN);
 
       Close(connfd);
    }
