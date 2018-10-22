@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include "socket_helper.h"
 
 int Socket(int domain, int type, int protocol) {
