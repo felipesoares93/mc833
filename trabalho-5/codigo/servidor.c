@@ -12,32 +12,19 @@
 #include "basic.h"
 #include "socket_helper.h"
 
-<<<<<<< HEAD
-#define LISTENQ 10
+// #define LISTENQ 10
 #define MAXDATASIZE 4096
-=======
-// #define LISTENQ 10              
-#define MAXDATASIZE 4096         
->>>>>>> arthur
 #define EXIT_COMMAND "exit\n"
 
 void doit(int connfd, struct sockaddr_in clientaddr);
 
 int main (int argc, char **argv) {
-<<<<<<< HEAD
    int    listenfd,
           connfd,
-          port;
+          port,
+          listenq;
    struct sockaddr_in servaddr;
    char   error[MAXDATASIZE + 1];
-=======
-   int    listenfd,              
-          connfd,               
-          port,
-          listenq;                  
-   struct sockaddr_in servaddr;  
-   char   error[MAXDATASIZE + 1];     
->>>>>>> arthur
 
    if (argc != 3) {
       strcpy(error,"uso: ");
@@ -66,18 +53,18 @@ int main (int argc, char **argv) {
       socklen_t clientaddr_len = sizeof(clientaddr);
 
       connfd = Accept(listenfd, (struct sockaddr *) &clientaddr, &clientaddr_len);
-      
+
       if (getpeername(connfd, (struct sockaddr *) &clientaddr, &clientaddr_len) == -1) {
          perror("getpeername() failed");
          return 0 ;
       }
 
       printf("<%s-%d>: connected\n", inet_ntoa(clientaddr.sin_addr),(int) ntohs(clientaddr.sin_port));
-      
+
       sleep(5);
-      
+
       if((pid = fork()) == 0) {
-         
+
          Close(listenfd);
 
          doit(connfd, clientaddr);
