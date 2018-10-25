@@ -56,9 +56,10 @@ int main (int argc, char **argv) {
 
       if((pid = fork()) == 0) {
          Close(listenfd);
-         
+         printf("<%s-%d>: opening\n", inet_ntoa(clientaddr.sin_addr),(int) ntohs(clientaddr.sin_port));
          doit(connfd, clientaddr);
 
+         printf("<%s-%d>: closing\n", inet_ntoa(clientaddr.sin_addr),(int) ntohs(clientaddr.sin_port));
          Close(connfd);
 
          exit(0);
@@ -72,7 +73,7 @@ int main (int argc, char **argv) {
 
 void doit(int connfd, struct sockaddr_in clientaddr) {
    char recvline[MAXDATASIZE + 1];
-   char   message[MAXDATASIZE + 1];      
+   // char   message[MAXDATASIZE + 1];      
    int n;                  
    socklen_t remoteaddr_len = sizeof(clientaddr);
    
@@ -86,13 +87,13 @@ void doit(int connfd, struct sockaddr_in clientaddr) {
 
       printf("<%s-%d>: %s\n", inet_ntoa(clientaddr.sin_addr),(int) ntohs(clientaddr.sin_port), recvline);
 
-      printf("Digite uma mensagem:\n");
-      fgets(message, MAXDATASIZE, stdin);
-      if(strcmp(message, EXIT_COMMAND) == 0) {
-         break;
-      }
+      // printf("Digite uma mensagem:\n");
+      // fgets(message, MAXDATASIZE, stdin);
+      // if(strcmp(message, EXIT_COMMAND) == 0) {
+      //    break;
+      // }
 
-      write(connfd, message, strlen(message));
+      write(connfd, recvline, strlen(recvline));
 
    }
 }
