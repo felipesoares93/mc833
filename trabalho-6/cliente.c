@@ -68,7 +68,7 @@ void doit(FILE *fp_in, int sockfd) {
    for ( ; ; ) {
       c = c+1;
       if (stdineof == 0) {
-         printf("%d aqui ",c);
+         // printf("%d aqui ",c);
          FD_SET(fileno(fp_in), &rset);
       }
       FD_SET(sockfd, &rset);
@@ -80,29 +80,31 @@ void doit(FILE *fp_in, int sockfd) {
       
       if (FD_ISSET(sockfd, &rset)) {
          if (read(sockfd, response, MAXLINE) == 0) {
-            printf("%d FD_ISSET S Y %s\n", c, response);
+            // printf("%d FD_ISSET S Y %s\n", c, response);
             if (stdineof == 1) {
-               continue;
+               return;
             } else {
                printf("client: server terminated prematurely\n");
                exit(0);
             }
          }
-         printf("FD_ISSET S N %s\n", response);
+         // printf("FD_ISSET S N %s\n", response);
          fputs(response, stdout);
       }
 
       if (FD_ISSET(fileno(fp_in), &rset)) {
-         if ((r = getline(&line, &len, fp_in)) == -1) {
-         // if (fgets(message, MAXLINE, fp_in) == NULL) {
-            printf("FD_ISSET FP Y %s\n", line);
+         // if ((r = getline(&line, &len, fp_in)) == -1) {
+         if (fgets(message, MAXLINE, fp_in) == NULL) {
+            // printf("FD_ISSET FP Y %s\n", line);
             stdineof = 1;
             shutdown(sockfd, 1);
             FD_CLR(fileno(fp_in), &rset);
             continue;
          }
-         printf("FD_ISSET FP N %s\n", line);
-         write(sockfd, line, len);
+         // printf("FD_ISSET FP N %s\n", message);
+         n = send(sockfd, message, strlen(message), 0);
+         // printf("c = %d; n = %d\n",c,n);
+         // write(sockfd, line, len);
       }
    }                   
 

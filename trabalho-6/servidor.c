@@ -76,16 +76,34 @@ void doit(int connfd, struct sockaddr_in clientaddr) {
    // char   message[MAXDATASIZE + 1];      
    int n;                  
    socklen_t remoteaddr_len = sizeof(clientaddr);
+
+   // if ((n = recv(connfd, recvline, MAXDATASIZE,0)) <0 ) {
+   //    printf("recv() failed");
+   //    exit(1);
+   // }
+   // printf("n = %d\n", n);
+   // while (n > 0) {
+   //    if (send(connfd, recvline, MAXDATASIZE, 0) != n) {
+   //       printf("send() failed");
+   //       // exit(1);
+   //    }
+   //    if ((n = recv(connfd, recvline, MAXDATASIZE, 0)) < 0) {
+   //       printf("recv() failed");
+   //       exit(1);
+   //    }
+   // }
    
    while ((n = read(connfd, recvline, MAXDATASIZE)) > 0) {
       recvline[n] = 0; 
 
-      if (getpeername(connfd, (struct sockaddr *) &clientaddr, &remoteaddr_len) == -1) {
-         perror("getpeername() failed");
-         return;
-      }
+      // if (getpeername(connfd, (struct sockaddr *) &clientaddr, &remoteaddr_len) == -1) {
+      //    perror("getpeername() failed");
+      //    return;
+      // }
 
-      printf("<%s-%d>: %s\n", inet_ntoa(clientaddr.sin_addr),(int) ntohs(clientaddr.sin_port), recvline);
+      // printf("<%s-%d>: \n", inet_ntoa(clientaddr.sin_addr),(int) ntohs(clientaddr.sin_port));
+
+      printf("Dentro do servidor msg: %s", recvline);
 
       // printf("Digite uma mensagem:\n");
       // fgets(message, MAXDATASIZE, stdin);
@@ -93,7 +111,7 @@ void doit(int connfd, struct sockaddr_in clientaddr) {
       //    break;
       // }
 
-      write(connfd, recvline, strlen(recvline));
+      send(connfd, recvline, strlen(recvline),0);
 
    }
 }
