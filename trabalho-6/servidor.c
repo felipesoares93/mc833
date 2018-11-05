@@ -12,18 +12,18 @@
 #include "basic.h"
 #include "socket_helper.h"
 
-#define LISTENQ 10              
-#define MAXDATASIZE 4096         
+#define LISTENQ 10
+#define MAXDATASIZE 4096
 #define EXIT_COMMAND "exit\n"
 
 void doit(int connfd, struct sockaddr_in clientaddr);
 
 int main (int argc, char **argv) {
-   int    listenfd,              
-          connfd,               
-          port;                  
-   struct sockaddr_in servaddr;  
-   char   error[MAXDATASIZE + 1];     
+   int    listenfd,
+          connfd,
+          port;
+   struct sockaddr_in servaddr;
+   char   error[MAXDATASIZE + 1];
 
    if (argc != 2) {
       strcpy(error,"uso: ");
@@ -37,14 +37,10 @@ int main (int argc, char **argv) {
 
    listenfd = Socket(AF_INET, SOCK_STREAM, 0);
 
-
    servaddr = ServerSockaddrIn(AF_INET, INADDR_ANY, port);
 
-
    Bind(listenfd, (struct sockaddr *) &servaddr, sizeof(servaddr));
-
    Listen(listenfd, LISTENQ);
-
 
    for ( ; ; ) {
       pid_t pid;
@@ -67,49 +63,18 @@ int main (int argc, char **argv) {
 
       Close(connfd);
    }
-   
+
    return(0);
 }
 
 void doit(int connfd, struct sockaddr_in clientaddr) {
    char recvline[MAXDATASIZE + 1];
-   // char   message[MAXDATASIZE + 1];      
-   int n;                  
-   socklen_t remoteaddr_len = sizeof(clientaddr);
+   int n;
 
-   // if ((n = recv(connfd, recvline, MAXDATASIZE,0)) <0 ) {
-   //    printf("recv() failed");
-   //    exit(1);
-   // }
-   // printf("n = %d\n", n);
-   // while (n > 0) {
-   //    if (send(connfd, recvline, MAXDATASIZE, 0) != n) {
-   //       printf("send() failed");
-   //       // exit(1);
-   //    }
-   //    if ((n = recv(connfd, recvline, MAXDATASIZE, 0)) < 0) {
-   //       printf("recv() failed");
-   //       exit(1);
-   //    }
-   // }
-   
    while ((n = read(connfd, recvline, MAXDATASIZE)) > 0) {
-      recvline[n] = 0; 
+      recvline[n] = 0;
 
-      // if (getpeername(connfd, (struct sockaddr *) &clientaddr, &remoteaddr_len) == -1) {
-      //    perror("getpeername() failed");
-      //    return;
-      // }
-
-      // printf("<%s-%d>: \n", inet_ntoa(clientaddr.sin_addr),(int) ntohs(clientaddr.sin_port));
-
-      printf("Dentro do servidor msg: %s", recvline);
-
-      // printf("Digite uma mensagem:\n");
-      // fgets(message, MAXDATASIZE, stdin);
-      // if(strcmp(message, EXIT_COMMAND) == 0) {
-      //    break;
-      // }
+      printf("Mensagem recebida: %s", recvline);
 
       send(connfd, recvline, strlen(recvline),0);
 

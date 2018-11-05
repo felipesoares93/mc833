@@ -99,12 +99,12 @@ void doit(int connfd, struct sockaddr_in clientaddr) {
       }
 
       // printf("Digite uma mensagem:\n");
-      fgets(message, MAXDATASIZE, stdin);
-      if(strcmp(message, EXIT_COMMAND) == 0) {
-         break;
-      }
+      // fgets(message, MAXDATASIZE, stdin);
+      // if(strcmp(message, EXIT_COMMAND) == 0) {
+      //    break;
+      // }
 
-      write(connfd, message, strlen(message));
+      write(connfd, recvline, strlen(recvline));
 
    }
 }

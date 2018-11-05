@@ -14,17 +14,17 @@
 #include "socket_helper.h"
 
 #define MAXLINE 4096
-#define EXIT_COMMAND "exit\n"    
+#define EXIT_COMMAND "exit\n"
 
 
 void doit(int sockfd);
 
 int main(int argc, char **argv) {
-   int    port, sockfd;                  
-   char * ip;                      
-   char   error[MAXLINE + 1];       
-   struct sockaddr_in servaddr;    
-   
+   int    port, sockfd;
+   char * ip;
+   char   error[MAXLINE + 1];
+   struct sockaddr_in servaddr;
+
    if ((argc < 2) || (argc > 3)) {
       strcpy(error,"uso: ");
       strcat(error,argv[0]);
@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
       perror(error);
       exit(1);
    }
-  
+
    ip = argv[1];
    if (argc == 2) {
       FILE *fptr = stdin;
@@ -54,27 +54,29 @@ int main(int argc, char **argv) {
 }
 
 void doit(int sockfd) {
-   char   message[MAXLINE + 1];     
-   char   response[MAXLINE + 1];   
-   int    n;                      
+   char   message[MAXLINE + 1];
+   char   response[MAXLINE + 1];
+   int    n;
 
    printf("Digite uma mensagem:\n");
    fgets (message, MAXLINE, stdin);
 
    write(sockfd, message, strlen(message));
-   
+
    while((n = read(sockfd, response, MAXLINE)) > 0) {
-      response[n] = 0; 
-      
+      response[n] = 0;
+
       printf("Resposta do servidor: %s\n", response);
 
-      printf("Digite uma mensagem:\n");
-      fgets (message, MAXLINE, stdin);
+      break;
 
-      if(strcmp(message, EXIT_COMMAND) == 0) {
-         break;
-      }
-
-      write(sockfd, message, strlen(message));
+      // printf("Digite uma mensagem:\n");
+      // fgets (message, MAXLINE, stdin);
+      //
+      // if(strcmp(message, EXIT_COMMAND) == 0) {
+      //    break;
+      // }
+      //
+      // write(sockfd, message, strlen(message));
    }
 }
