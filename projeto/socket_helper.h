@@ -26,4 +26,6 @@ struct sockaddr_in ServerSockaddrIn(int family, unsigned long ip, unsigned short
 
 struct sockaddr_in ClientSockaddrIn(int family, const char *ip, unsigned short port);
 
+int GetNLines(char *filename);
+
 #endif

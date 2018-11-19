@@ -100,3 +100,17 @@ struct sockaddr_in ClientSockaddrIn(int family, const char *ip, unsigned short p
 
    return addr;
 }
+
+int GetNLines(char *filename) {
+   FILE *f = fopen(filename, "r");
+   int nwords = 0;
+   char ch;
+   while(!feof(f)) {
+      ch = fgetc(f);
+      if(ch == '\n') {
+         nwords++;
+      }
+   }
+   fclose(f);
+   return(nwords);
+}

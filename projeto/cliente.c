@@ -53,17 +53,17 @@ void doit(int sockfd) {
    char   response[MAXLINE + 1];   
    int    n;                      
 
-   printf("Digite uma mensagem:\n");
-   fgets (message, MAXLINE, stdin);
+   // printf("Digite uma mensagem:\n");
+   // fgets (message, MAXLINE, stdin);
 
-   write(sockfd, message, strlen(message));
+   // write(sockfd, message, strlen(message));
    
    while((n = read(sockfd, response, MAXLINE)) > 0) {
       response[n] = 0; 
       
-      printf("Resposta do servidor: %s\n", response);
+      printf("%s\n", response);
 
-      printf("Digite uma mensagem:\n");
+      printf("Cliente: ");
       fgets (message, MAXLINE, stdin);
 
       if(strcmp(message, EXIT_COMMAND) == 0) {
