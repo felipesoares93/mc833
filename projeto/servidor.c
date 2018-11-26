@@ -11,22 +11,28 @@
 #include <ctype.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
-
+#include <signal.h>
 #include "basic.h"
 #include "socket_helper.h"
 
-#define LISTENQ 10              
-#define MAXDATASIZE 4096         
+#define LISTENQ 10
+#define MAXDATASIZE 4096
 #define EXIT_COMMAND "exit\n"
 #define CLI_MSG_SIZE 100
 
+volatile sig_atomic_t keepRunning = 1;
+
+void intHandler(int dummy) {
+    keepRunning = 0;
+}
+
 int main (int argc, char **argv) {
-   
-   int    listenfd,              
-          connfd,               
-          port;                  
-   struct sockaddr_in servaddr;  
-   char   error[MAXDATASIZE + 1];     
+
+   int    listenfd,
+          connfd,
+          port;
+   struct sockaddr_in servaddr;
+   char   error[MAXDATASIZE + 1];
 
    if (argc != 2) {
       strcpy(error,"uso: ");
@@ -36,15 +42,17 @@ int main (int argc, char **argv) {
       exit(1);
    }
 
+   signal(SIGINT, intHandler);
+
    // Leitura das palavras
    char wordsfile[30];
-   sprintf(wordsfile, "palavras.txt"); 
+   sprintf(wordsfile, "palavras.txt");
    int nwords = GetNLines(wordsfile);
    char words[nwords][40];
    int i;
 
    FILE *f = fopen(wordsfile, "r");
-   
+
    for (i = 0; i < nwords; i++) {
       if (fgets(words[i], sizeof(words[i]), f) != NULL) {
          words[i][strlen(words[i])-1] = '\0';
@@ -122,7 +130,7 @@ int main (int argc, char **argv) {
 
    Listen(listenfd, LISTENQ);
 
-   for ( ; ; ) {
+   while (true) {
       pid_t pid;
       int n;
 
@@ -134,32 +142,14 @@ int main (int argc, char **argv) {
       if((pid = fork()) == 0) {
          Close(listenfd);
 
-         int menu;
          char *palavra_para_acertar;
-         char palpite[MAXDATASIZE+1];
-         char msgresp[MAXDATASIZE+1];
-         char letras_dispo[MAXDATASIZE+1];
-         char resposta_ao_cliente[MAXDATASIZE+1];
-         int vidas;
-         int r;
-         int i;
-         int c;
-         int jogo_perdido;
-         int letra_encontrada_na_palavra;
-         int resp_cliente_invalida;
-         int jogo_vencido;
-         int resp_cliente_letra;
-         int resp_cliente_palavra;
-         int letra_ja_utilizada;
-         int palpite_palavra_errado;
-         int jogo_finalizado;
-         int jogando;
-         int letras_na_palavra_para_acertar;
+         char palpite[MAXDATASIZE+1],msgresp[MAXDATASIZE+1],letras_dispo[MAXDATASIZE+1],
+         resposta_ao_cliente[MAXDATASIZE+1];
+         int menu,vidas,r, i, c, jogo_perdido, letra_encontrada_na_palavra, resp_cliente_invalida,
+         jogo_vencido, resp_cliente_letra, resp_cliente_palavra, letra_ja_utilizada, palpite_palavra_errado,
+         jogo_finalizado,jogando, letras_na_palavra_para_acertar, carrasco_cliente_enviando_palavra,
+         carrasco_cliente,palavra_carrasco_invalida,online;
          int *palavras_utilizadas;
-         int carrasco_cliente_enviando_palavra;
-         int carrasco_cliente;
-         int palavra_carrasco_invalida;
-         int online;
 
          menu = 1;
          jogo_finalizado = 0;
@@ -172,7 +162,7 @@ int main (int argc, char **argv) {
          while(i < nwords) {
             palavras_utilizadas[i] = 0;
             i++;
-         } 
+         }
          srand(time(NULL));
          sprintf(resposta_ao_cliente, "\nBem vindo ao jogo da forca\n____\n\n1) Iniciar partida simples\n2) Ser carrasco ao iniciar partida\n3) Jogar no modo multiplayer\n");
 
@@ -240,8 +230,6 @@ int main (int argc, char **argv) {
                }
             }
 
-
-
             if (jogo_finalizado == 1) {
                if (online == 1) {
                   online = 0;
@@ -264,18 +252,6 @@ int main (int argc, char **argv) {
                }
 
             }
-
-
-
-
-
-
-
-
-
-
-
-
 
             if (menu == 1) {
 
@@ -328,24 +304,28 @@ int main (int argc, char **argv) {
 
                   write(connfd, resposta_ao_cliente, strlen(resposta_ao_cliente));
                   continue;
-                  
+
                } else if (strcmp(msgresp, "2") == 0) {
 
                   if (carrasco_ptr[0] == 0) {
-                     carrasco_ptr[0] = 1;
-                     sprintf(resposta_ao_cliente, "\nVocê é o carrasco\nQual palavra quer utilizar?\n");
-                     write(connfd, resposta_ao_cliente, strlen(resposta_ao_cliente));
-                     carrasco_cliente_enviando_palavra = 1;
-                     carrasco_cliente = 1;
-                     continue;
 
+                    if (jogadores_online_ptr[0] == 0) {
+                      sprintf(resposta_ao_cliente, "\nNão existem jogadores online para jogar como carrasco!\nVocê é o carrasco\nQual palavra quer utilizar?\n");
+                    } else {
+                      sprintf(resposta_ao_cliente, "\nVocê é o carrasco\nQual palavra quer utilizar?\n");
+                    }
+
+                    carrasco_ptr[0] = 1;
+                    write(connfd, resposta_ao_cliente, strlen(resposta_ao_cliente));
+                    carrasco_cliente_enviando_palavra = 1;
+                    carrasco_cliente = 1;
+                    continue;
                   } else {
                      sprintf(resposta_ao_cliente, "\nJá tem um carrasco. Escolha outra opção.\n\n1) Iniciar partida simples\n2) Ser carrasco ao iniciar partida\n3) Jogar no modo multiplayer\n");
                      write(connfd, resposta_ao_cliente, strlen(resposta_ao_cliente));
                      menu = 1;
                      continue;
                   }
-
 
                } else if (strcmp(msgresp, "3") == 0) {
                   if (carrasco_ptr[0] == 0) {
@@ -364,8 +344,8 @@ int main (int argc, char **argv) {
                      i = 0;
                      while(i < MAXDATASIZE+1) {
                         palavra_para_acertar[i] = carrasco_palavra_ptr[i];
-                        i++;                        
-                     }                      
+                        i++;
+                     }
                      letras_na_palavra_para_acertar = strlen(palavra_para_acertar);
                      printf("<%s-%d> palavra: %s\n", inet_ntoa(clientaddr.sin_addr),(int) ntohs(clientaddr.sin_port), palavra_para_acertar);
                      // Montagem da string de palpite
@@ -390,21 +370,10 @@ int main (int argc, char **argv) {
                      continue;
                   }
                }
-            } 
-
-
-
-
-
-
-
-
-
-
-
+            }
 
             if (jogando == 1) {
-               
+
                // Inicialização de variáveis de controle
                resp_cliente_invalida = 0;
                jogo_perdido = 0;
@@ -417,7 +386,7 @@ int main (int argc, char **argv) {
                // Iteração com jogador
 
                // Jogador envia letra ou palavra para servidor
-               i = 0; 
+               i = 0;
                c = 0;
                while (i < strlen(msgresp)) {
                   if (isalpha(msgresp[i])) {
@@ -431,17 +400,9 @@ int main (int argc, char **argv) {
                }
 
 
-               
-
-
-
-
-
-
-
                if (resp_cliente_invalida == 1) {
                   vidas--;
-      
+
                   if (vidas == 0) {
                      sprintf(resposta_ao_cliente, "\nLetra inválida\nVocê perdeu o jogo\nSe deseja ir ao menu digite \"sim\"\nSe quiser sair do programa, digite \"não\"\n");
                      jogando = 0;
@@ -466,11 +427,6 @@ int main (int argc, char **argv) {
 
                   printf("<%s-%d> palpite: %s\n", inet_ntoa(clientaddr.sin_addr),(int) ntohs(clientaddr.sin_port), msgresp);
                }
-
-               
-
-
-
 
                if (resp_cliente_letra == 1) {
 
@@ -526,15 +482,6 @@ int main (int argc, char **argv) {
                   continue;
                }
 
-               
-               
-
-
-
-
-
-
-
                if (resp_cliente_palavra == 1) {
                   palpite_palavra_errado = 0;
                   for (i = 0; i < strlen(palavra_para_acertar); i++) {
@@ -545,7 +492,7 @@ int main (int argc, char **argv) {
 
                   if (palpite_palavra_errado == 0) {
                      sprintf(resposta_ao_cliente, "\nVocê adivinhou a palavra!\nSe deseja ir ao menu digite \"sim\"\nSe quiser sair do programa, digite \"não\"\n");
-                     
+
                   } else {
                      sprintf(resposta_ao_cliente, "\nA palavra correta era \"%s\", você perdeu!\nSe deseja ir ao menu digite \"sim\"\nSe quiser sair do programa, digite \"não\"\n", palavra_para_acertar);
                   }
@@ -553,22 +500,18 @@ int main (int argc, char **argv) {
                   jogando = 0;
                   write(connfd, resposta_ao_cliente, strlen(resposta_ao_cliente));
                   continue;
-               } 
+               }
             }
-
-
-
-
-
          }
 
-         // Close(connfd);
-
-         // exit(0);
+         // Verifica se o cliente que está desconectando é o carrasco
+         if (carrasco_cliente == 1) {
+           carrasco_ptr[0] = 0;
+         }
       }
       Close(connfd);
-      
    }
+
    wait(&status);
    printf("Server has detected the completion of its child...\n");
    shmdt((void *) carrasco_palavra_ptr);
@@ -581,6 +524,6 @@ int main (int argc, char **argv) {
    printf("Server has removed its shared memory...\n");
    printf("Server exits...\n");
    exit(0);
-   
+
    return(0);
 }
