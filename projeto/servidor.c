@@ -21,13 +21,25 @@
 #define CLI_MSG_SIZE 100
 
 volatile sig_atomic_t keepRunning = 1;
+int carrasco_palavra;
+char *carrasco_palavra_ptr;
+int carrasco_flag;
+int *carrasco_ptr;
+int jogadores_online;
+int *jogadores_online_ptr;
 
-void intHandler(int dummy) {
-    keepRunning = 0;
+void sighandler(int dummy) {
+  keepRunning = 0;
+  shmdt((void *) carrasco_palavra_ptr);
+  shmdt((void *) carrasco_ptr);
+  shmdt((void *) jogadores_online_ptr);
+  shmctl(carrasco_palavra, IPC_RMID, NULL);
+  shmctl(carrasco_flag, IPC_RMID, NULL);
+  shmctl(jogadores_online, IPC_RMID, NULL);
+  exit(0);
 }
 
 int main (int argc, char **argv) {
-
    int    listenfd,
           connfd,
           port;
@@ -42,7 +54,8 @@ int main (int argc, char **argv) {
       exit(1);
    }
 
-   signal(SIGINT, intHandler);
+   signal(SIGINT, sighandler);
+   signal(SIGTSTP, sighandler);
 
    // Leitura das palavras
    char wordsfile[30];
@@ -66,12 +79,6 @@ int main (int argc, char **argv) {
    // VARIAVEIS DE MEMORIA COMPARTILHADA
 
    /////////////////////////////////////////////////
-
-   int status;
-
-   int carrasco_flag;
-   int *carrasco_ptr;
-
    carrasco_flag = shmget(IPC_PRIVATE, sizeof(int), IPC_CREAT | 0666);
    if (carrasco_flag < 0) {
       printf("*** shmget error (server) ***\n");
@@ -100,9 +107,6 @@ int main (int argc, char **argv) {
       exit(1);
    }
 
-   int jogadores_online;
-   int *jogadores_online_ptr;
-
    jogadores_online = shmget(IPC_PRIVATE, sizeof(int), IPC_CREAT | 0666);
    if (jogadores_online < 0) {
       printf("*** shmget error (server) ***\n");
@@ -130,10 +134,9 @@ int main (int argc, char **argv) {
 
    Listen(listenfd, LISTENQ);
 
-   while (true) {
+   while (keepRunning) {
       pid_t pid;
       int n;
-
       struct sockaddr_in clientaddr;
       socklen_t clientaddr_len = sizeof(clientaddr);
 
@@ -512,7 +515,6 @@ int main (int argc, char **argv) {
       Close(connfd);
    }
 
-   wait(&status);
    printf("Server has detected the completion of its child...\n");
    shmdt((void *) carrasco_palavra_ptr);
    shmdt((void *) carrasco_ptr);
