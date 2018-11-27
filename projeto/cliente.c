@@ -9,21 +9,22 @@
 #include <strings.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "basic.h"
 #include "socket_helper.h"
 
-#define MAXLINE 4096
-#define EXIT_COMMAND "exit\n"    
+#define MAXDATASIZE 4096
+#define EXIT_COMMAND "exit\n"
 
 
 void doit(int sockfd);
 
 int main(int argc, char **argv) {
-   int    port, sockfd;                  
-   char * ip;                      
-   char   error[MAXLINE + 1];       
-   struct sockaddr_in servaddr;    
+   int    port, sockfd;
+   char * ip;
+   char   error[MAXDATASIZE + 1];
+   struct sockaddr_in servaddr;
 
    if (argc != 3) {
       strcpy(error,"uso: ");
@@ -33,7 +34,7 @@ int main(int argc, char **argv) {
       exit(1);
    }
 
-  
+
    ip = argv[1];
    port = atoi(argv[2]);
 
@@ -49,27 +50,28 @@ int main(int argc, char **argv) {
 }
 
 void doit(int sockfd) {
-   char   message[MAXLINE + 1];     
-   char   response[MAXLINE + 1];   
-   int    n;                      
+   char   message[MAXDATASIZE + 1];
+   char   response[MAXDATASIZE + 1];
+   int    n;
 
-   // printf("Digite uma mensagem:\n");
-   // fgets (message, MAXLINE, stdin);
+   while((n = read(sockfd, response, MAXDATASIZE)) > 0) {
+      response[n] = 0;
 
-   // write(sockfd, message, strlen(message));
-   
-   while((n = read(sockfd, response, MAXLINE)) > 0) {
-      response[n] = 0; 
-      
       printf("%s\n", response);
 
-      printf("Cliente: ");
-      fgets (message, MAXLINE, stdin);
+      if (strcmp(response,"\nVocê é o carrasco\nQual palavra quer utilizar?\n") == 0) {
+        printf("Aguardando jogadores...");
+        sleep(5);
+        write(sockfd, message, strlen(message));
+      } else {
+        printf("Cliente: ");
+        fgets (message, MAXDATASIZE, stdin);
 
-      if(strcmp(message, EXIT_COMMAND) == 0) {
-         break;
+        if(strcmp(message, EXIT_COMMAND) == 0) {
+           break;
+        }
+
+        write(sockfd, message, strlen(message));
       }
-
-      write(sockfd, message, strlen(message));
    }
 }
