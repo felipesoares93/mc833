@@ -311,13 +311,7 @@ int main (int argc, char **argv) {
                } else if (strcmp(msgresp, "2") == 0) {
 
                   if (carrasco_ptr[0] == 0) {
-
-                    if (jogadores_online_ptr[0] == 0) {
-                      sprintf(resposta_ao_cliente, "\nNão existem jogadores online para jogar como carrasco!\nVocê é o carrasco\nQual palavra quer utilizar?\n");
-                    } else {
-                      sprintf(resposta_ao_cliente, "\nVocê é o carrasco\nQual palavra quer utilizar?\n");
-                    }
-
+                    sprintf(resposta_ao_cliente, "\nVocê é o carrasco\nQual palavra quer utilizar?\n");
                     carrasco_ptr[0] = 1;
                     write(connfd, resposta_ao_cliente, strlen(resposta_ao_cliente));
                     carrasco_cliente_enviando_palavra = 1;
