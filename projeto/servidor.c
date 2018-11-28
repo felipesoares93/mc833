@@ -22,7 +22,9 @@
 
 volatile sig_atomic_t keepRunning = 1;
 int carrasco_palavra;
+int lista_mult_ip_port;
 char *carrasco_palavra_ptr;
+char *lista_mult_ip_port_ptr;
 int carrasco_flag;
 int *carrasco_ptr;
 int jogadores_online;
@@ -31,9 +33,11 @@ int *jogadores_online_ptr;
 void sighandler(int dummy) {
   keepRunning = 0;
   shmdt((void *) carrasco_palavra_ptr);
+  shmdt((void *) lista_mult_ip_port_ptr);
   shmdt((void *) carrasco_ptr);
   shmdt((void *) jogadores_online_ptr);
   shmctl(carrasco_palavra, IPC_RMID, NULL);
+  shmctl(lista_mult_ip_port, IPC_RMID, NULL);
   shmctl(carrasco_flag, IPC_RMID, NULL);
   shmctl(jogadores_online, IPC_RMID, NULL);
   exit(0);
@@ -92,8 +96,8 @@ int main (int argc, char **argv) {
    }
    carrasco_ptr[0] = 0;
 
-   int carrasco_palavra;
-   char *carrasco_palavra_ptr;
+   int carrasco_palavra, lista_mult_ip_port;
+   char *carrasco_palavra_ptr, *lista_mult_ip_port_ptr;
 
    carrasco_palavra = shmget(IPC_PRIVATE, (MAXDATASIZE+1)*sizeof(char), IPC_CREAT | 0666);
    if (carrasco_palavra < 0) {
@@ -101,8 +105,20 @@ int main (int argc, char **argv) {
       exit(1);
    }
 
+   lista_mult_ip_port = shmget(IPC_PRIVATE, (MAXDATASIZE+1)*sizeof(char), IPC_CREAT | 0666);
+   if (lista_mult_ip_port < 0) {
+      printf("*** shmget error (server) ***\n");
+      exit(1);
+   }
+
    carrasco_palavra_ptr = (char *) shmat(carrasco_palavra, NULL, 0);
    if ((char) carrasco_palavra_ptr == -1) {
+      printf("*** shmat error (server) ***\n");
+      exit(1);
+   }
+
+   lista_mult_ip_port_ptr = (char *) shmat(lista_mult_ip_port, NULL, 0);
+   if ((char) lista_mult_ip_port_ptr == -1) {
       printf("*** shmat error (server) ***\n");
       exit(1);
    }
@@ -237,7 +253,8 @@ int main (int argc, char **argv) {
                     write(connfd, resposta_ao_cliente, strlen(resposta_ao_cliente));
                     continue;
                   } else {
-                    sprintf(resposta_ao_cliente, "\nO jogo multiplayer começou!\nEsta partida será disputada por %d jogadores\nDigite \"sair\" para finalizar o jogo\n", jogadores_online_ptr[0]);
+                    sprintf(resposta_ao_cliente, "%s", lista_mult_ip_port_ptr);
+                    sprintf(resposta_ao_cliente, "%s\nO jogo multiplayer começou!\nEsta partida será disputada por %d jogadores\nDigite \"sair\" para finalizar o jogo\n", resposta_ao_cliente, jogadores_online_ptr[0]);
                     write(connfd, resposta_ao_cliente, strlen(resposta_ao_cliente));
                     continue;
                   }
@@ -333,6 +350,7 @@ int main (int argc, char **argv) {
                   if (carrasco_ptr[0] == 0) {
                     sprintf(resposta_ao_cliente, "\nVocê é o carrasco\nQual palavra quer utilizar?\n");
                     carrasco_ptr[0] = 1;
+                    sprintf(lista_mult_ip_port_ptr, "");
                     write(connfd, resposta_ao_cliente, strlen(resposta_ao_cliente));
                     carrasco_cliente_enviando_palavra = 1;
                     carrasco_cliente = 1;
@@ -379,6 +397,12 @@ int main (int argc, char **argv) {
                            }
                         }
                         i++;
+                     }
+
+                     if (strcmp(lista_mult_ip_port_ptr,"") == 0) {
+                       sprintf(lista_mult_ip_port_ptr, "%s-%d", inet_ntoa(clientaddr.sin_addr),(int) ntohs(clientaddr.sin_port));                       
+                     } else {
+                       sprintf(lista_mult_ip_port_ptr, "%s\n%s-%d", lista_mult_ip_port_ptr, inet_ntoa(clientaddr.sin_addr),(int) ntohs(clientaddr.sin_port));
                      }
 
                      // Mensagem de início de jogo
