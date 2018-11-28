@@ -151,13 +151,14 @@ int main (int argc, char **argv) {
          int menu,vidas,r, i, c, jogo_perdido, letra_encontrada_na_palavra, resp_cliente_invalida,
          jogo_vencido, resp_cliente_letra, resp_cliente_palavra, letra_ja_utilizada, palpite_palavra_errado,
          jogo_finalizado,jogando, letras_na_palavra_para_acertar, carrasco_cliente_enviando_palavra,
-         carrasco_cliente,palavra_carrasco_invalida,online;
+         carrasco_cliente_aguardando_start, carrasco_cliente,palavra_carrasco_invalida,online;
          int *palavras_utilizadas;
 
          menu = 1;
          jogo_finalizado = 0;
          jogando = 0;
          carrasco_cliente_enviando_palavra = 0;
+         carrasco_cliente_aguardando_start = 0;
          carrasco_cliente = 0;
          online = 0;
          palavras_utilizadas = (int *) malloc(nwords*sizeof(int));
@@ -192,7 +193,7 @@ int main (int argc, char **argv) {
             printf("<%s-%d>: %s\n", inet_ntoa(clientaddr.sin_addr),(int) ntohs(clientaddr.sin_port), msgresp);
 
             if (strcmp(msgresp, "-h") == 0) {
-               sprintf(resposta_ao_cliente, "\nRegras do jogo\n\n- O carrasco escolhe uma palavra sem mostrar ao enforcado\n- INforma ao enforcado quantas letras tem a palavra\n- O enforcado então diz uma letra do alafabeto\n- O carrasco verifica se esta letra esta contida na palavra\n    - Se estiver, o mesmo preenche os espaços em branco correspondentes à letra\n    - Caso não estiver, o carrasco tira uma vida do enforcado\n- Se o enforcado perde todas as vidas, perde o jogo\n- Se o enforcado fizer a tentativa de  adivinhar a palavra inteira e errar, perde o jogo\n\nDesenvolvedores:\nArthur Maia Mendes\nFelipe Carvalho\n");
+               sprintf(resposta_ao_cliente, "\nRegras do jogo\n\n- O carrasco escolhe uma palavra sem mostrar ao enforcado\n- Informa ao enforcado quantas letras tem a palavra\n- O enforcado então diz uma letra do alafabeto\n- O carrasco verifica se esta letra esta contida na palavra\n    - Se estiver, o mesmo preenche os espaços em branco correspondentes à letra\n    - Caso não estiver, o carrasco tira uma vida do enforcado\n- Se o enforcado perde todas as vidas, perde o jogo\n- Se o enforcado fizer a tentativa de  adivinhar a palavra inteira e errar, perde o jogo\n\nDesenvolvedores:\nArthur Maia Mendes\nFelipe Carvalho\n");
                write(connfd, resposta_ao_cliente, strlen(resposta_ao_cliente));
                continue;
             }
@@ -226,8 +227,27 @@ int main (int argc, char **argv) {
                   sprintf(carrasco_palavra_ptr, "");
                   Close(connfd);
                   exit(0);
-               } else {
-                  sprintf(resposta_ao_cliente, "\nDigite \"sair\" para finalizar o jogo\n");
+                } else if (strcmp(msgresp, "start_mult_game") == 0) {
+                  carrasco_cliente_aguardando_start = 0;
+                  if (jogadores_online_ptr[0] == 0) {
+                    carrasco_ptr[0] = 0;
+                    menu = 1;
+                    sprintf(carrasco_palavra_ptr, "");
+                    sprintf(resposta_ao_cliente, "\nO jogo não pode iniciar pois não há jogadores online!\n\n1) Iniciar partida simples\n2) Ser carrasco ao iniciar partida\n3) Jogar no modo multiplayer\n");
+                    write(connfd, resposta_ao_cliente, strlen(resposta_ao_cliente));
+                    continue;
+                  } else {
+                    sprintf(resposta_ao_cliente, "\nO jogo multiplayer começou!\nEsta partida será disputada por %d jogadores\nDigite \"sair\" para finalizar o jogo\n", jogadores_online_ptr[0]);
+                    write(connfd, resposta_ao_cliente, strlen(resposta_ao_cliente));
+                    continue;
+                  }
+                } else {
+                  if (!carrasco_cliente_aguardando_start) {
+                    sprintf(resposta_ao_cliente, "\nDigite \"sair\" para finalizar o jogo\n");
+                  } else {
+                    sprintf(resposta_ao_cliente, "waiting_mult_game");
+                  }
+
                   write(connfd, resposta_ao_cliente, strlen(resposta_ao_cliente));
                   continue;
                }
@@ -316,6 +336,7 @@ int main (int argc, char **argv) {
                     write(connfd, resposta_ao_cliente, strlen(resposta_ao_cliente));
                     carrasco_cliente_enviando_palavra = 1;
                     carrasco_cliente = 1;
+                    carrasco_cliente_aguardando_start = 1;
                     continue;
                   } else {
                      sprintf(resposta_ao_cliente, "\nJá tem um carrasco. Escolha outra opção.\n\n1) Iniciar partida simples\n2) Ser carrasco ao iniciar partida\n3) Jogar no modo multiplayer\n");
@@ -504,6 +525,7 @@ int main (int argc, char **argv) {
          // Verifica se o cliente que está desconectando é o carrasco
          if (carrasco_cliente == 1) {
            carrasco_ptr[0] = 0;
+           carrasco_cliente_aguardando_start = 0;
          }
       }
       Close(connfd);
