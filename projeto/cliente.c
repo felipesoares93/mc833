@@ -51,59 +51,63 @@ int main(int argc, char **argv) {
 }
 
 void doit(int sockfd) {
-   char   message[MAXDATASIZE + 1], response[MAXDATASIZE + 1], response_mult[MAXDATASIZE + 1], temp_mult_line[MAXDATASIZE + 1], mult_players_ip[10][50];
-   char** splitted_response;
-   char** splitted_mult_info;
-   int    n, mult_players_qty = 0, flag_read_mult_info = 0, flag_carrasco_waiting = 0, flag_carrasco_playing = 0, mult_players_port[10];
+   char   message[MAXDATASIZE + 1], response[MAXDATASIZE + 1];
+   // char   mult_players_ip[10][50], response_mult[MAXDATASIZE + 1], temp_mult_line[MAXDATASIZE + 1];
+   // char** splitted_response;
+   // char** splitted_mult_info;
+   int    n, flag_carrasco_waiting = 0, flag_carrasco_playing = 0;
+   // int    mult_players_qty = 0, mult_players_port[10], flag_read_mult_info = 0, mult_players_qty = 0;
 
    while((n = read(sockfd, response, MAXDATASIZE)) > 0) {
       response[n] = 0;
 
       if (strcmp(response,"waiting_mult_game") != 0) {
-        if (flag_carrasco_playing && strcmp(response,"\nO jogo não pode iniciar pois não há jogadores online!\n\n1) Iniciar partida simples\n2) Ser carrasco ao iniciar partida\n3) Jogar no modo multiplayer\n") != 0) {
-          // Aqui, o cliente eh carrasco e a mensagem de volta nao foi de erro, logo o jogo comecou
-          // vamos tratar a mensagem de volta para extrair os dados de ip/porta dos jogadores
-          mult_players_qty = 0;
-          sprintf(response_mult, "");
-
-          splitted_response = str_split(response, '\n');
-          if (splitted_response) {
-
-            flag_read_mult_info = 1;
-            for (int i = 0; *(splitted_response + i); i++) {
-              if (flag_read_mult_info && strcmp(*(splitted_response + i), "O jogo multiplayer começou!") != 0) {
-
-                strcpy(temp_mult_line, *(splitted_response + i));
-                splitted_mult_info = str_split(temp_mult_line, '-');
-
-                if (splitted_mult_info) {
-                    strcpy(mult_players_ip[i], *(splitted_mult_info));
-                    mult_players_port[i] = (int) *(splitted_mult_info + 1);
-                    mult_players_qty++;
-                    free(*(splitted_mult_info));
-                    free(*(splitted_mult_info + 1));
-                    free(splitted_mult_info);
-                }
-
-              } else if (strcmp(*(splitted_response + i), "O jogo multiplayer começou!") == 0) {
-                sprintf(response_mult, "%s", *(splitted_response + i));
-                flag_read_mult_info = 0;
-              } else {
-                sprintf(response_mult, "%s\n%s\n", response_mult, *(splitted_response + i));
-              }
-
-              free(*(splitted_response + i));
-            }
-            free(splitted_response);
-          }
-
-          // Aqui, mult_players_port e mult_players_ip contém os dados em ordem de porta e ip dos jogadores da partida
-
-          printf("%s\n", response_mult);
-
-        } else {
-          printf("%s\n", response);
-        }
+        // if (flag_carrasco_playing && strcmp(response,"\nO jogo não pode iniciar pois não há jogadores online!\n\n1) Iniciar partida simples\n2) Ser carrasco ao iniciar partida\n3) Jogar no modo multiplayer\n") != 0) {
+        //   // Aqui, o cliente eh carrasco e a mensagem de volta nao foi de erro, logo o jogo comecou
+        //   // vamos tratar a mensagem de volta para extrair os dados de ip/porta dos jogadores
+        //   mult_players_qty = 0;
+        //   sprintf(response_mult, "");
+        //   printf("%s\n", response);
+        //
+        //   splitted_response = str_split(response, '\n');
+        //   if (splitted_response) {
+        //
+        //     flag_read_mult_info = 1;
+        //     for (int i = 0; *(splitted_response + i); i++) {
+        //       if (flag_read_mult_info && strcmp(*(splitted_response + i), "O jogo multiplayer começou!") != 0) {
+        //
+        //         strcpy(temp_mult_line, *(splitted_response + i));
+        //         splitted_mult_info = str_split(temp_mult_line, '-');
+        //
+        //         if (splitted_mult_info) {
+        //             strcpy(mult_players_ip[i], *(splitted_mult_info));
+        //             mult_players_port[i] = (int) *(splitted_mult_info + 1);
+        //             mult_players_qty++;
+        //             free(*(splitted_mult_info));
+        //             free(*(splitted_mult_info + 1));
+        //             free(splitted_mult_info);
+        //         }
+        //
+        //       } else if (strcmp(*(splitted_response + i), "O jogo multiplayer começou!") == 0) {
+        //         sprintf(response_mult, "%s", *(splitted_response + i));
+        //         flag_read_mult_info = 0;
+        //       } else {
+        //         sprintf(response_mult, "%s\n%s\n", response_mult, *(splitted_response + i));
+        //       }
+        //
+        //       free(*(splitted_response + i));
+        //     }
+        //     free(splitted_response);
+        //   }
+        //
+        //   // Aqui, mult_players_port e mult_players_ip contém os dados em ordem de porta e ip dos jogadores da partida
+        //
+        //   printf("%s\n", response_mult);
+        //
+        // } else {
+        //   printf("%s\n", response);
+        // }
+        printf("%s\n", response);
       }
 
       if (flag_carrasco_waiting && strcmp(response,"\nPalavra inválida\nSó são aceitas palavras com letras minusculas, sem acentos\nQual palavra quer utilizar?\n") != 0) {

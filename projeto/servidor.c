@@ -253,7 +253,7 @@ int main (int argc, char **argv) {
                     write(connfd, resposta_ao_cliente, strlen(resposta_ao_cliente));
                     continue;
                   } else {
-                    sprintf(resposta_ao_cliente, "%s", lista_mult_ip_port_ptr);
+                    // sprintf(resposta_ao_cliente, "%s", lista_mult_ip_port_ptr);
                     sprintf(resposta_ao_cliente, "%s\nO jogo multiplayer começou!\nEsta partida será disputada por %d jogadores\nDigite \"sair\" para finalizar o jogo\n", resposta_ao_cliente, jogadores_online_ptr[0]);
                     write(connfd, resposta_ao_cliente, strlen(resposta_ao_cliente));
                     continue;
@@ -400,7 +400,7 @@ int main (int argc, char **argv) {
                      }
 
                      if (strcmp(lista_mult_ip_port_ptr,"") == 0) {
-                       sprintf(lista_mult_ip_port_ptr, "%s-%d", inet_ntoa(clientaddr.sin_addr),(int) ntohs(clientaddr.sin_port));                       
+                       sprintf(lista_mult_ip_port_ptr, "%s-%d", inet_ntoa(clientaddr.sin_addr),(int) ntohs(clientaddr.sin_port));
                      } else {
                        sprintf(lista_mult_ip_port_ptr, "%s\n%s-%d", lista_mult_ip_port_ptr, inet_ntoa(clientaddr.sin_addr),(int) ntohs(clientaddr.sin_port));
                      }
